@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>slop checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fafaf8;--fg:#141414;--mute:#8a8a85;--line:#e4e4df;--card:#f1f1ec;--acc:#e5391f;--ok:#1f9d55;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0e0d;--fg:#f0f0ec;--mute:#7d7d77;--line:#242421;--card:#171715;--acc:#ff5a3d;--ok:#3ecf7a}}
+:root[data-theme="dark"]{--bg:#0e0e0d;--fg:#f0f0ec;--mute:#7d7d77;--line:#242421;--card:#171715;--acc:#ff5a3d;--ok:#3ecf7a}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 "Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:760px;margin:0 auto;padding:48px 22px 96px}
+header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:56px}
+header{flex-wrap:wrap;gap:6px 20px;margin-bottom:36px}header b{--sb:color-mix(in srgb,var(--fg) 40%,var(--bg));font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif;font-size:clamp(40px,10vw,72px);line-height:1;font-weight:800;letter-spacing:-.045em;color:transparent;background:linear-gradient(110deg,var(--fg) 0%,var(--fg) 38%,var(--acc) 46%,#fff 50%,var(--acc) 54%,var(--fg) 62%,var(--fg) 100%);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;animation:shine 3.6s linear infinite;filter:drop-shadow(0 0 16px color-mix(in srgb,var(--acc) 40%,transparent))}
+@keyframes shine{from{background-position:130% 0}to{background-position:-30% 0}}
+@media (prefers-reduced-motion:reduce){header b{animation:none}}
+header span{color:var(--mute);font-size:14px}
+h1{font-size:clamp(34px,7vw,52px);line-height:1.05;letter-spacing:-.04em;font-weight:600;margin:0 0 14px}
+.sub{color:var(--mute);margin:0 0 32px;max-width:520px}
+textarea{width:100%;min-height:200px;resize:vertical;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:16px;font:inherit;font-size:15px;outline:none;transition:border-color .2s}
+textarea:focus{border-color:var(--fg)}
+.row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;cursor:pointer;border-radius:999px;padding:10px 20px;border:1px solid var(--line);background:transparent;color:var(--fg);transition:.2s}
+button:hover{border-color:var(--fg)}
+button.p{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button.p:hover{opacity:.85}
+.count{margin-left:auto;color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+#res{display:none;margin-top:64px}
+#res.on{display:block}
+.hero{display:flex;gap:32px;align-items:flex-end;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:32px}
+.big{font-size:clamp(88px,22vw,160px);line-height:.85;font-weight:600;letter-spacing:-.06em;font-variant-numeric:tabular-nums}
+.big small{font-size:.28em;color:var(--mute);letter-spacing:0;margin-left:6px;font-weight:400}
+.verdict{padding-bottom:8px}
+.verdict .lbl{color:var(--mute);font-size:13px}
+.verdict .v{font-size:26px;letter-spacing:-.02em;font-weight:600}
+.meter{height:6px;background:var(--line);border-radius:6px;margin:28px 0 0;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--acc);transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+h2{font-size:13px;font-weight:500;color:var(--mute);margin:48px 0 18px;text-transform:lowercase}
+.m{display:grid;grid-template-columns:1fr auto;gap:2px 16px;margin-bottom:20px}
+.m .n{font-weight:500}.m .s{font-variant-numeric:tabular-nums;text-align:right}
+.m .d{grid-column:1/-1;color:var(--mute);font-size:13px}
+.m .bar{grid-column:1/-1;height:4px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden}
+.m .bar i{display:block;height:100%;width:0;background:var(--fg);transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.chartwrap{overflow-x:auto;background:var(--card);border-radius:14px;padding:20px 16px 12px}
+svg{display:block;min-width:100%}
+svg .b{transform-origin:bottom;transform-box:fill-box;transform:scaleY(0);transition:transform .8s cubic-bezier(.2,.8,.2,1);fill:var(--fg)}
+svg .b.hot{fill:var(--acc)}
+svg.go .b{transform:scaleY(1)}
+svg text{fill:var(--mute);font-size:10px;font-family:inherit}
+.note{color:var(--mute);font-size:13px;margin:10px 0 0}
+.text{background:var(--card);border-radius:14px;padding:18px;white-space:pre-wrap;word-wrap:break-word;font-size:15px}
+mark{background:color-mix(in srgb,var(--acc) 22%,transparent);color:inherit;border-bottom:2px solid var(--acc);border-radius:2px;padding:0 1px}
+mark.h{background:color-mix(in srgb,#e6b800 24%,transparent);border-color:#e6b800}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--mute);margin-bottom:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:8px}
+.stat{background:var(--card);border-radius:14px;padding:16px}
+.stat div:first-child{font-size:28px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat div:last-child{color:var(--mute);font-size:12px}
+footer{margin-top:72px;color:var(--mute);font-size:12px}
+input{width:100%;margin-bottom:10px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:12px 18px;font:inherit;font-size:15px;outline:none}
+input:focus{border-color:var(--fg)}
+.meter{position:relative;overflow:visible}.meter i{border-radius:6px}
+.meter::after{content:"slop line";position:absolute;left:50%;top:-18px;transform:translateX(-50%);font-size:10px;color:var(--mute)}
+.meter::before{content:"";position:absolute;left:50%;top:-4px;bottom:-4px;width:1px;background:var(--fg);z-index:1}
+svg.radar{min-width:0;max-width:580px;width:100%;height:auto;margin:0 auto}
+svg.radar .rg{transform-origin:230px 180px;transform:scale(0);transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}
+svg.radar.go .rg{transform:scale(1)}
+.stack{position:relative;height:26px;background:var(--card);border-radius:8px;overflow:hidden}
+#stack{display:flex;height:100%}
+#stack i{display:block;height:100%;width:0;transition:width 1.3s cubic-bezier(.2,.8,.2,1);border-right:2px solid var(--bg)}
+.stack .tick{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--fg)}
+.legend2{display:grid;gap:6px;margin-top:14px;font-size:13px}
+.legend2 div{display:flex;align-items:center;gap:8px}.legend2 b{width:10px;height:10px;border-radius:3px;display:inline-block}
+.legend2 span:last-child{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--mute)}
+.err{display:none;margin:14px 0 0;padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--acc) 12%,transparent);border:1px solid var(--acc);font-size:14px}.err.on{display:block}
+.live{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}.live span{font-size:48px;line-height:1;font-weight:600;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.live small{color:var(--mute);font-size:13px}
+svg#line{width:100%;height:auto;min-width:0}
+body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:-20% -10% auto;height:60vh;background:radial-gradient(60% 60% at 50% 0%,color-mix(in srgb,var(--acc) 15%,transparent),transparent 70%);pointer-events:none;z-index:0}
+main{position:relative;z-index:1}
+h1,.big,.verdict .v,.stat div:first-child,.live span,.big2,.gnum span{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500}
+h1{font-size:clamp(48px,10vw,88px);letter-spacing:-.03em;line-height:.92}
+.big{font-size:clamp(110px,28vw,210px);letter-spacing:-.04em}
+.verdict .v{font-size:40px}.stat div:first-child{font-size:36px}
+.tabs2{position:relative;display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:32px}
+.tabs2 button{border:0;position:relative;z-index:1;padding:9px 20px;color:var(--mute)}
+.tabs2 button.on{color:var(--bg)}
+.tabs2 i{position:absolute;top:4px;bottom:4px;left:4px;width:0;background:var(--fg);border-radius:999px;transition:left .45s cubic-bezier(.2,.8,.2,1),width .45s cubic-bezier(.2,.8,.2,1)}
+.pane{display:none}.pane.on{display:block;animation:up .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.mq{overflow:hidden;white-space:nowrap;border-block:1px solid var(--line);margin:0 -22px 52px;padding:10px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.mq div{display:inline-block;animation:mq 45s linear infinite;color:var(--mute);font-size:13px;letter-spacing:.04em}
+@keyframes mq{to{transform:translateX(-50%)}}
+.mq span{margin:0 20px}.mq s{text-decoration-color:var(--acc)}
+button.p{box-shadow:0 10px 26px -12px var(--fg)}button:active{transform:scale(.97)}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1)}.reveal.in{opacity:1;transform:none}
+.out{display:none}.out.on{display:block;margin-top:56px}
+.gauge{position:relative;max-width:380px;margin:0 auto}.gauge svg{display:block;width:100%;height:auto;min-width:0}
+#garc{transition:stroke-dashoffset 1.8s cubic-bezier(.2,.8,.2,1)}
+.gnum{position:absolute;left:0;right:0;bottom:0;text-align:center;line-height:1}.gnum span{font-size:92px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.gnum b{font-size:28px;color:var(--mute);font-weight:400}
+.gv{text-align:center;font-family:"Cormorant Garamond",Georgia,serif;font-size:32px;margin-top:6px}
+.ba{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap}.ba .lbl{color:var(--mute);font-size:13px}.big2{font-size:clamp(72px,16vw,120px);line-height:1.1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.big,.big2,.stat div:first-child,.gnum span,.live span{font-variant-numeric:lining-nums tabular-nums}
+#chg{margin-top:28px}.arr{font-size:36px;color:var(--mute);padding-bottom:10px}
+mark.g{background:color-mix(in srgb,var(--ok) 22%,transparent);border-color:var(--ok)}
+.conds{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}.conds summary{cursor:pointer;font-weight:500}.conds ol{padding-left:20px;margin:14px 0 0;color:var(--mute)}.conds li{margin-bottom:10px}.conds b{color:var(--fg);font-weight:500}.conds span{font-size:12px;margin-left:6px}
+.fnote{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:44px;opacity:0}
+.fnote.pop{animation:pop .9s cubic-bezier(.2,1.3,.3,1) forwards}
+.fnote img{width:160px;height:auto;border-radius:20px;box-shadow:0 18px 40px -18px rgba(0,0,0,.5)}
+.ftxt span{display:inline-block;animation:wig 1.6s ease-in-out .9s 2}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+.ftxt{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(40px,9vw,64px);line-height:1;letter-spacing:-.02em}
+@keyframes pop{from{opacity:0;transform:translateY(20px) scale(.9)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<main>
+<header><b>Slop checker</b><span>runs in your browser · nothing is sent anywhere</span></header>
+<nav class="tabs2" id="nav"><button data-p="p1" class="on">site slop</button><button data-p="p2">AI check</button><button data-p="p3">fix it</button><i></i></nav>
+<div class="mq"><div id="mq"></div></div>
+<div class="pane on" id="p1"><h1>is this website slop?</h1>
+<p class="sub">open the site, select all, copy, paste its text below. you get a slop / not slop verdict, plus graphs showing exactly why. (browsers block pages from fetching other sites, so the text has to be pasted in.)</p>
+<input id="site" placeholder="site name or url, e.g. example.com" autocomplete="off">
+<textarea id="in" placeholder="paste the website's visible text here (hero, features, about, pricing…)"></textarea>
+<div class="row">
+<button class="p" id="go">check for slop</button>
+<button id="ex">example: sloppy landing page</button>
+<button id="ex2">example: victorguo.com</button>
+<span class="count" id="wc">0 words</span>
+</div>
+<p class="err" id="err"></p>
+
+<section id="res">
+<div class="hero">
+<div class="big"><span id="score">0</span><small>/100 slop</small></div>
+<div class="verdict"><div class="lbl" id="site_l"></div><div class="v" id="verdict"></div><div class="lbl" id="vsub"></div></div>
+</div>
+<div class="meter"><i id="meter"></i></div>
+
+<h2>numbers</h2>
+<div class="stats" id="stats"></div>
+
+<h2>slop profile (the further out, the sloppier)</h2>
+<div class="chartwrap"><svg id="radar" class="radar" viewBox="0 0 460 360"></svg></div>
+<h2>what drives the score</h2>
+<div class="stack"><div id="stack"></div><span class="tick"></span></div>
+<div class="legend2" id="legend"></div>
+<h2>breakdown</h2>
+<div id="metrics"></div>
+
+<h2>sentence rhythm</h2>
+<div class="chartwrap"><svg id="chart" height="150"></svg></div>
+<p class="note">each bar is a line or sentence, height is word count. flat, same-sized bars read as machine rhythm; red bars are within 15% of the average length.</p>
+
+<h2>stats, counting up from 0</h2>
+<div class="row" id="tabs" style="margin:0 0 12px"><button data-k="hits" class="p">slop phrases</button><button data-k="words">words</button><button data-k="uniq">unique words</button><button id="replay">↻ replay</button></div>
+<div class="chartwrap"><div class="live"><span id="live">0</span><small id="livel"></small></div><svg id="line" viewBox="0 0 640 220"></svg></div>
+<p class="note">a running total built up sentence by sentence, from 0 to the final number. pick a stat above; a steep early climb in slop phrases means the slop is front-loaded.</p>
+<h2>where the slop is</h2>
+<div class="legend"><span><mark>cliché / boilerplate</mark></span><span><mark class="h">hedge</mark></span></div>
+<div class="text" id="hl"></div>
+<footer>heuristic checker on copy only. it cannot judge visual design, and a verdict of "slop" means generic, padded writing, not proof a machine wrote it.</footer>
+</section>
+</div>
+<div class="pane" id="p2"><h1>was this written by AI?</h1>
+<p class="sub">paste any text: an essay, an email, a caption. you get a likelihood and the signals behind it. no detector is reliable, so treat it as a hint, not proof.</p>
+<textarea id="in2" placeholder="paste any text (50+ words works best)…"></textarea>
+<div class="row"><button class="p" id="go2">check for AI</button><button id="ex3">try an AI-sounding sample</button><span class="count" id="wc2">0 words</span></div>
+<p class="err" id="err2"></p>
+<div class="out" id="res2"><div class="gauge"><svg viewBox="0 0 300 170"><path d="M30 150A120 120 0 0 1 270 150" fill="none" stroke="var(--line)" stroke-width="14" stroke-linecap="round"/><path id="garc" d="M30 150A120 120 0 0 1 270 150" fill="none" stroke="var(--acc)" stroke-width="14" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377"/></svg><div class="gnum"><span id="ai">0</span><b>%</b></div></div>
+<div class="gv" id="aiv"></div>
+<h2>signals behind it</h2><div id="sig"></div>
+<details class="conds"><summary>all conditions the check uses</summary><ol id="clist"></ol></details></div></div>
+<div class="pane" id="p3"><h1>fix the slop.</h1>
+<p class="sub">paste slop, get a plainer rewrite. it swaps clichés for normal words, cuts filler and hedges, and shows what changed. it can strip padding, but only you can add the specifics.</p>
+<textarea id="in3" placeholder="paste the sloppy text here…"></textarea>
+<div class="row"><button class="p" id="go3">fix it</button><button id="ex4">try a sloppy sample</button><button id="cp">copy result</button><span class="count" id="wc3">0 words</span></div>
+<p class="err" id="err3"></p>
+<div class="out" id="res3"><div class="fnote" id="fnote"><div class="ftxt">it’s fixed now <span>🐱</span></div></div><div class="ba"><div><div class="lbl">slop before</div><div class="big2" id="b4">0</div></div><div class="arr">→</div><div><div class="lbl">slop after</div><div class="big2" id="a4">0</div></div></div>
+<p class="note" id="chg"></p>
+<h2>rewrite (green = swapped)</h2><div class="text" id="fixed"></div></div></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const CLICHES=["delve","delving","testament to","tapestry","realm","navigate the","leverage","leveraging","unlock","elevate","seamless","seamlessly","robust","cutting-edge","game-changer","game changing","fast-paced","ever-evolving","ever-changing","it's important to note","it is important to note","it's worth noting","it is worth noting","moreover","furthermore","harness","foster","pivotal","crucial","vibrant","bustling","holistic","synergy","embark","unleash","dive into","deep dive","plays a crucial role","plays a vital role","at the end of the day","rich tapestry","beacon","meticulous","meticulously","underscore","underscores","multifaceted","paradigm","landscape","journey","comprehensive","in today's","myriad","plethora","revolutionize","transformative","empower","streamline","stands as","not just","but also","whether you're","supercharge","10x","next-generation","next level","world-class","state-of-the-art","ai-powered","powered by ai","all-in-one","revolutionary","reimagine","reimagined","effortless","effortlessly","scale your","built for the future","the future of"];
+const BOILER=["in conclusion","in summary","to summarize","overall,","as an ai","i hope this helps","let me know if","certainly!","great question","absolutely!","of course!","here's a","here is a","feel free to","i'd be happy to","without further ado","by following these","remember,","ultimately,","get started","book a demo","request a demo","sign up for free","trusted by","join thousands","no credit card","start your free trial","learn more"];
+const HEDGE=["may","might","could","potentially","generally","typically","often","perhaps","arguably","somewhat","tend to","can be","possibly","likely","seems to","appears to","in some cases","to some extent"];
+const SLOP_EX="Supercharge your workflow with the all-in-one AI-powered platform built for the future.\nUnlock seamless collaboration and elevate your team to the next level.\nTrusted by thousands of innovative teams worldwide.\nOur robust, cutting-edge solution empowers you to streamline operations effortlessly.\nWhether you're a startup or an enterprise, we help you navigate the ever-evolving landscape.\nRevolutionize the way you work with our transformative, world-class tools.\nJoin thousands of teams and get started today. Book a demo. No credit card required.";
+const CLEAN_EX="growth operator for tech startups\ngrowth @ composio: owning social media & consumer growth\nfounder @ alert creative: social media consulting for leading tech startups\ncs @ uwaterloo: going to class and acing my exams (maybe)\n2025: advised lindy's socials, built creator program with 100+ creators\nfounder @ playcreate: 70M impressions in 10 videos, 5-figure revenue\n2024: worked with 100+ influencers, helping with strategy and production\nmade my first 6-figures off the internet\n2023: worked with my first client with 1M+ followers\nquit video games: spent too much time playing fortnite, so i quit\n2021: learned how to make videos and earned my first dollar off the internet";
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const rx=l=>new RegExp("(?<![a-z'’])("+l.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")(?![a-z])","gi");
+const RC=rx(CLICHES),RB=rx(BOILER),RH=rx(HEDGE);
+const clamp=(x,a=0,b=100)=>Math.max(a,Math.min(b,x));
+const words=t=>(t.toLowerCase().match(/[a-z0-9'’-]+/g)||[]);
+function count(el,to,dur=1400,dec=0){const t0=performance.now();(function f(n){const p=Math.min(1,(n-t0)/dur),e=1-Math.pow(1-p,3);el.textContent=(to*e).toFixed(dec);if(p<1)requestAnimationFrame(f)})(t0)}
+function analyze(text){
+ const w=words(text),n=w.length;
+ const sents=text.split(/[.!?\n]+/).map(s=>s.trim()).filter(s=>words(s).length);
+ const lens=sents.map(s=>words(s).length);
+ const mean=lens.reduce((a,b)=>a+b,0)/(lens.length||1);
+ const sd=Math.sqrt(lens.reduce((a,b)=>a+(b-mean)**2,0)/(lens.length||1));
+ const cv=mean?sd/mean:0;
+ const per100=c=>c/Math.max(n,1)*100;
+ const nc=(text.match(RC)||[]).length,nb=(text.match(RB)||[]).length,nh=(text.match(RH)||[]).length;
+ // repetition: repeated trigrams
+ const tri={};for(let i=0;i<n-2;i++){const k=w[i]+" "+w[i+1]+" "+w[i+2];tri[k]=(tri[k]||0)+1}
+ const rep=Object.values(tri).filter(v=>v>1).reduce((a,b)=>a+b,0)/Math.max(n-2,1);
+ const ttr=new Set(w).size/Math.max(n,1);
+ // specificity: numbers, capitalised mid-sentence words, concrete markers
+ const nums=(text.match(/\b\d[\d,.%$]*\b/g)||[]).length;
+ const caps=(text.match(/(?<=[a-z,;]\s)[A-Z][a-z]+/g)||[]).length;
+ const spec=per100(nums+caps);
+ const cnt=re=>(text.match(re)||[]).length;
+ const hy=cnt(/\b(?:best|leading|powerful|innovative|revolutionary|amazing|ultimate|premier|unparalleled|industry-leading|best-in-class|award-winning|groundbreaking|game-changing|incredible|stunning)\b/gi),
+ bz=cnt(/\b(?:solutions?|platform|ecosystem|workflows?|scalable|scalability|mission-critical|end-to-end|turnkey|synergies|stakeholders?|bandwidth|deliverables|enterprise-grade|digital transformation|value proposition)\b/gi),
+ ex=cnt(/!/g),
+ pr=cnt(/\b(?:we|our team|our platform)\s+(?:help|helps|make|makes|empower|empowers|enable|enables|provide|provides|deliver|delivers)\b|\bhelp(?:s|ing)? you\b|\bwe(?:'|’)re here to\b|\byour (?:business|team|brand|growth|success)\b/gi),
+ tg=cnt(/\b[A-Za-z]+\.\s+[A-Za-z]+\.\s+[A-Za-z]+\./g),
+ ef=cnt(/\b(?:easily|effortlessly|simply|instantly|in minutes|in seconds|with (?:just )?one click|no coding|no code|hassle-free|zero learning curve)\b/gi);
+ const M=[
+  {n:"cliché density",s:clamp(per100(nc)*18),d:nc+" stock llm phrases found ("+per100(nc).toFixed(1)+" per 100 words)"},
+  {n:"marketing filler",s:clamp(per100(nb)*30),d:nb+" generic cta, hype or assistant-speak lines"},
+  {n:"hedging",s:clamp(per100(nh)*10),d:nh+" hedge words that dodge commitment"},
+  {n:"flat rhythm",s:lens.length<3?30:clamp((0.55-cv)/0.55*100),d:"sentence-length variation "+cv.toFixed(2)+" (human prose is usually above 0.5)"},
+  {n:"repetition",s:clamp(rep*400+(0.6-ttr)*60),d:"repeated phrasing and "+Math.round(ttr*100)+"% unique vocabulary"},
+  {n:"low specificity",s:clamp(100-spec*18),d:nums+" numbers and "+caps+" named things; vague text has few"},
+  {n:"hype adjectives",s:clamp(per100(hy)*20),d:hy+" words like best, leading, powerful, innovative"},
+  {n:"corporate buzzwords",s:clamp(per100(bz)*20),d:bz+" words like solutions, platform, scalable, end-to-end"},
+  {n:"exclamation marks",s:clamp(per100(ex)*25),d:ex+" exclamation marks"},
+  {n:"“we help you” promises",s:clamp(per100(pr)*30),d:pr+" generic promises like “we help you”, “your business”"},
+  {n:"tagline triplets",s:clamp(tg*35),d:tg+" “Fast. Simple. Powerful.” style fragments"},
+  {n:"effortless promises",s:clamp(per100(ef)*25),d:ef+" claims like easily, instantly, in minutes, no code"}
+ ];
+ const wt=[1.4,1.2,.8,.9,.7,1.1,1.1,1,.5,.9,.6,.7];
+ const total=Math.round(clamp(M.reduce((a,m,i)=>a+m.s*wt[i],0)/wt.reduce((a,b)=>a+b,0)*1.2));
+ return{n,sents:lens.length,mean,lens,wt,M,total,hits:nc+nb+nh,nc,nb,nh};
+}
+function verdict(s){return s<25?"clean, real information":s<50?"mildly generic, still on the right side":s<75?"clearly generic and padded":"pure slop"}
+let SER=null,CUR="hits",RAF=0;
+const LAB={hits:"slop phrases flagged",words:"words",uniq:"unique words"};
+function startLine(k){
+ CUR=k;cancelAnimationFrame(RAF);
+ document.querySelectorAll("#tabs [data-k]").forEach(b=>b.classList.toggle("p",b.dataset.k===k));
+ const S=[0].concat(SER[k]),n=S.length-1,max=Math.max(...S,1),svg=$("line");
+ const X=i=>34+i*(590/Math.max(n,1)),Y=v=>190-v/max*160;
+ $("livel").textContent=LAB[k];
+ const t0=performance.now(),dur=2200;
+ (function f(now){
+  const p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3),pos=e*n,i=Math.min(Math.floor(pos),n),fr=pos-i;
+  let d="M"+X(0)+","+Y(0);
+  for(let j=1;j<=i;j++)d+=" L"+X(j)+","+Y(S[j]);
+  const v=i<n?S[i]+(S[i+1]-S[i])*fr:S[n];
+  if(i<n)d+=" L"+X(pos)+","+Y(v);
+  const tx=X(Math.min(pos,n)),ty=Y(v);
+  svg.innerHTML=`<line x1="34" x2="624" y1="190" y2="190" stroke="var(--line)"/><line x1="34" x2="624" y1="30" y2="30" stroke="var(--line)" stroke-dasharray="3 4"/><text x="28" y="34" text-anchor="end">${max}</text><text x="28" y="194" text-anchor="end">0</text><text x="34" y="208">start</text><text x="624" y="208" text-anchor="end">end of text</text><path d="${d} L${tx},190 L${X(0)},190Z" fill="var(--acc)" fill-opacity=".12"/><path d="${d}" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${tx}" cy="${ty}" r="5" fill="var(--acc)"/>`;
+  $("live").textContent=Math.round(v);
+  if(p<1)RAF=requestAnimationFrame(f);
+ })(t0);
+}
+function render(text){
+ const r=analyze(text);
+ $("site_l").textContent=$("site").value.trim()||"your site";
+ $("res").classList.add("on");
+ const bad=r.total>=50;
+ $("verdict").textContent=bad?"slop":"not slop";$("verdict").style.color=bad?"var(--acc)":"var(--ok)";$("vsub").textContent=verdict(r.total);
+ // radar
+ {const c=230,cy=180,R=115,n=r.M.length,pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[c+Math.cos(a)*R*v/100,cy+Math.sin(a)*R*v/100]};
+ let g="";[25,50,75,100].forEach(k=>{g+=`<polygon points="${r.M.map((_,i)=>pt(i,k).join(",")).join(" ")}" fill="none" stroke="var(--line)"/>`});
+ r.M.forEach((m,i)=>{const[x,y]=pt(i,100),[tx,ty]=pt(i,140);g+=`<line x1="${c}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/><text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="middle">${m.n}</text>`});
+ g+=`<g class="rg"><polygon points="${r.M.map((m,i)=>pt(i,m.s).join(",")).join(" ")}" fill="var(--acc)" fill-opacity=".2" stroke="var(--acc)" stroke-width="2" stroke-linejoin="round"/>`+r.M.map((m,i)=>{const[x,y]=pt(i,m.s);return`<circle cx="${x}" cy="${y}" r="3.5" fill="var(--acc)"><title>${m.n}: ${Math.round(m.s)}</title></circle>`}).join("")+`</g>`;
+ const rd=$("radar");rd.classList.remove("go");rd.innerHTML=g;setTimeout(()=>rd.classList.add("go"),80);}
+ // contribution stack
+ {const sw=r.wt.reduce((a,b)=>a+b,0),C=r.M.map((m,i)=>({n:m.n,v:m.s*r.wt[i]/sw})).sort((a,b)=>b.v-a.v);
+ const col=i=>`color-mix(in srgb,var(--acc) ${100-i*13}%,var(--bg))`;
+ $("stack").innerHTML=C.map((x,i)=>`<i data-w="${x.v}" style="background:${col(i)}" title="${x.n}"></i>`).join("");
+ setTimeout(()=>document.querySelectorAll("#stack i").forEach(e=>e.style.width=e.dataset.w+"%"),60);
+ $("legend").innerHTML=C.map((x,i)=>`<div><b style="background:${col(i)}"></b><span>${x.n}</span><span>${x.v.toFixed(1)} pts</span></div>`).join("");}
+ $("meter").style.width="0";requestAnimationFrame(()=>requestAnimationFrame(()=>$("meter").style.width=r.total+"%"));
+ count($("score"),r.total,1600);
+ $("stats").innerHTML=[[r.n,"words"],[r.sents,"sentences"],[r.nc+r.nb,"clichés + filler"],[r.mean.toFixed(1),"avg sentence length"]].map((x,i)=>`<div class="stat"><div data-v="${x[0]}">0</div><div>${x[1]}</div></div>`).join("");
+ document.querySelectorAll("#stats [data-v]").forEach(e=>{const v=parseFloat(e.dataset.v);count(e,v,1200,String(e.dataset.v).includes(".")?1:0)});
+ $("metrics").innerHTML=r.M.map(m=>`<div class="m"><span class="n">${m.n}</span><span class="s" data-v="${Math.round(m.s)}">0</span><span class="d">${esc(m.d)}</span><div class="bar"><i data-w="${m.s}"></i></div></div>`).join("");
+ setTimeout(()=>document.querySelectorAll("#metrics i").forEach(i=>i.style.width=i.dataset.w+"%"),60);
+ document.querySelectorAll("#metrics [data-v]").forEach(e=>count(e,+e.dataset.v,1200));
+ // chart
+ const L=r.lens.slice(0,60),W=Math.max(L.length*22+20,300),H=150,max=Math.max(...L,1),mean=r.mean;
+ let s="";
+ L.forEach((l,i)=>{const h=l/max*(H-36),hot=Math.abs(l-mean)<=mean*.15;s+=`<rect class="b${hot?" hot":""}" x="${10+i*22}" y="${H-22-h}" width="14" height="${h}" rx="3" style="transition-delay:${i*35}ms"><title>sentence ${i+1}: ${l} words</title></rect><text x="${10+i*22+7}" y="${H-8}" text-anchor="middle">${i+1}</text>`});
+ const my=H-22-mean/max*(H-36);
+ s+=`<line x1="0" x2="${W}" y1="${my}" y2="${my}" stroke="var(--mute)" stroke-dasharray="3 4"/><text x="${W-4}" y="${my-5}" text-anchor="end">avg ${mean.toFixed(1)}</text>`;
+ const c=$("chart");c.classList.remove("go");c.setAttribute("width",W);c.setAttribute("viewBox",`0 0 ${W} ${H}`);c.innerHTML=s;
+ setTimeout(()=>c.classList.add("go"),80);
+ // running totals
+ {const ss=(text.match(/[^.!?\n]+[.!?]*/g)||[]).filter(x=>words(x).length);let h=0,wc=0;const u=new Set(),A=[],B=[],C=[];
+ ss.forEach(x=>{h+=(x.match(RC)||[]).length+(x.match(RB)||[]).length+(x.match(RH)||[]).length;words(x).forEach(q=>{wc++;u.add(q)});A.push(h);B.push(wc);C.push(u.size)});
+ SER={hits:A,words:B,uniq:C};startLine(CUR);}
+ // highlight
+ const marks=[];
+ for(const[re,cls]of[[RC,""],[RB,""],[RH,"h"]]){re.lastIndex=0;let m;while((m=re.exec(text)))marks.push([m.index,m.index+m[0].length,cls])}
+ marks.sort((a,b)=>a[0]-b[0]);
+ let out="",pos=0;
+ for(const[a,b,cls]of marks){if(a<pos)continue;out+=esc(text.slice(pos,a))+`<mark${cls?` class="${cls}"`:""}>${esc(text.slice(a,b))}</mark>`;pos=b}
+ out+=esc(text.slice(pos));$("hl").innerHTML=out;
+ $("res").scrollIntoView({behavior:"smooth",block:"start"});
+}
+const upd=()=>{$("wc").textContent=words($("in").value).length+" words"};
+$("in").addEventListener("input",upd);
+document.querySelectorAll("#tabs [data-k]").forEach(b=>b.onclick=()=>SER&&startLine(b.dataset.k));
+$("replay").onclick=()=>SER&&startLine(CUR);
+const isUrl=x=>/^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(x.trim());
+const err=m=>{$("err").textContent=m;$("err").classList.toggle("on",!!m)};
+$("go").onclick=()=>{const t=$("in").value.trim();
+ if(!t||isUrl(t)||(!t&&isUrl($("site").value))){err("this page can't open a url, because browsers block it from fetching other sites. open the website, select all, copy, and paste its text into the big box. or send the url to claude in chat and it will check it for you.");return}
+ if(words(t).length<8){err("that's too short to judge. paste at least a few lines of the site's copy.");$("in").focus();return}
+ err("");render(t)};
+$("ex").onclick=()=>{err("");$("site").value="sloppy-saas-example.com";$("in").value=SLOP_EX;upd();render(SLOP_EX)};
+$("ex2").onclick=()=>{err("");$("site").value="victorguo.com";$("in").value=CLEAN_EX;upd();render(CLEAN_EX)};
+
+/* ---- tabs, marquee, reveal ---- */
+const NAV=$("nav");
+function show(id){document.querySelectorAll(".pane").forEach(p=>p.classList.toggle("on",p.id===id));NAV.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.p===id));const b=NAV.querySelector("button.on"),i=NAV.querySelector("i");i.style.left=b.offsetLeft+"px";i.style.width=b.offsetWidth+"px"}
+NAV.querySelectorAll("button").forEach(b=>b.onclick=()=>show(b.dataset.p));
+show("p1");if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>show(document.querySelector(".pane.on").id));
+{const w=["delve","testament to","rich tapestry","seamless","leverage","game-changer","unlock","robust","elevate","cutting-edge","holistic","synergy","navigate the landscape","fast-paced world","in conclusion","supercharge"];const h=w.map(x=>`<span><s>${x}</s></span>`).join("");$("mq").innerHTML=h+h}
+const IO=window.IntersectionObserver?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");IO.unobserve(e.target)}}),{threshold:.12}):null;
+function reveal(root){if(!IO)return;root.querySelectorAll("h2,.chartwrap,.stats,.text,.stack,.gv").forEach(e=>{e.classList.add("reveal");e.classList.remove("in");IO.observe(e)})}
+const _render=render;render=function(t){_render(t);reveal($("p1"))};
+const mk=(L,el)=>{el.innerHTML=L.map(m=>`<div class="m"><span class="n">${m.n}</span><span class="s" data-v="${Math.round(m.s)}">0</span><span class="d">${esc(m.d)}</span><div class="bar"><i data-w="${m.s}"></i></div></div>`).join("");setTimeout(()=>el.querySelectorAll("i").forEach(i=>i.style.width=i.dataset.w+"%"),60);el.querySelectorAll("[data-v]").forEach(e=>count(e,+e.dataset.v,1200))};
+const wcount=(a,b)=>$(a).addEventListener("input",()=>{$(b).textContent=words($(a).value).length+" words"});
+wcount("in2","wc2");wcount("in3","wc3");
+const msg=(id,m)=>{$(id).textContent=m;$(id).classList.toggle("on",!!m)};
+const okText=(t,id)=>{if(!t||isUrl(t)){msg(id,"paste the actual text, not a link. browsers stop this page from opening other sites.");return false}if(words(t).length<8){msg(id,"that's too short. paste at least a few sentences.");return false}msg(id,"");return true};
+/* ---- ai check ---- */
+const COND=[
+["clichés",1.5,"stock llm phrases: delve, tapestry, testament to, unlock, seamless, leverage…"],
+["filler & boilerplate",1,"“in conclusion”, “i hope this helps”, “get started”, assistant-speak"],
+["hedging",.8,"potentially, generally, arguably, perhaps, may, could"],
+["flat rhythm",1.2,"sentence lengths barely vary"],
+["repetition",.6,"repeated three-word phrases and a small vocabulary"],
+["low specificity",.9,"few numbers, dates, or named people and things"],
+["em-dashes",.8,"dashes used as punctuation"],
+["“not just x, but y”",1,"contrast constructions like “it’s not X, it’s Y”"],
+["no contractions",.7,"“it is” instead of “it’s” in a 50+ word text"],
+["tidy triplets",.8,"lists of exactly three items"],
+["no personal voice",.5,"almost no i, my, we or our in a 50+ word text"],
+["same sentence openers",.7,"many sentences starting with the same word"],
+["transition words",.8,"however, additionally, therefore, consequently…"],
+["vague abstract nouns",.8,"aspects, factors, strategies, insights, opportunities…"],
+["empty intensifiers",.6,"truly, incredibly, highly, deeply, extremely"],
+["markdown leftovers",.8,"**bold**, ## headings or bullet lines pasted as plain text"],
+["no informal markers",.5,"no slang, lol, tbh, gonna, “!!” or “...” in a 50+ word text"],
+["formal word length",.5,"long average word length"],
+["mid-length sentences",.6,"most sentences sit in a tidy 15–25 word band"],
+["moral-of-the-story ending",.5,"last sentence wraps up: overall, remember, ultimately…"],
+["both-sides phrasing",.5,"on one hand… on the other, while also…, both x and y"],
+["even paragraphs",.4,"paragraphs of near-identical length (3+ paragraphs)"],
+["lecturing “you”",.4,"heavy direct address: you, your, you’ll"]];
+const AIK=1.9;
+function aiCheck(text){const a=analyze(text),n=a.n,p=c=>c/Math.max(n,1)*100,long=n>=50,cnt=re=>(text.match(re)||[]).length;
+ const W=words(text),sents=text.split(/[.!?\n]+/).map(x=>x.trim()).filter(x=>words(x).length),sl=sents.map(x=>words(x).length);
+ const dash=cnt(/—|–| -- /g),con=cnt(/\bnot (?:just|only|merely)\b[^.]{0,50}\bbut\b|\bit(?:'|’)?s not\b[^.]{0,60}\bit(?:'|’)?s\b/gi),cn=cnt(/\b\w+['’](?:t|s|re|ve|ll|d|m)\b/gi),tri=cnt(/\b[\w-]+, [\w-]+,? and [\w-]+\b/gi),fp=cnt(/\b(?:i|my|me|we|our)\b/gi);
+ const fc={};sents.forEach(x=>{const f=words(x)[0]||"";fc[f]=(fc[f]||0)+1});const top=Math.max(0,...Object.values(fc));
+ const trans=cnt(/\b(?:however|additionally|therefore|thus|consequently|nevertheless|in addition|as a result|that said|accordingly)\b/gi),vague=cnt(/\b(?:aspects?|factors?|elements?|considerations?|strategies|approaches|solutions?|opportunities|challenges|insights?|dynamics|implications|stakeholders?|initiatives?)\b/gi),intens=cnt(/\b(?:truly|incredibly|highly|deeply|extremely|remarkably|profoundly|genuinely)\b/gi);
+ const md=cnt(/\*\*[^*]+\*\*|^\s{0,3}#{1,4}\s|^\s*(?:[-*•]|\d+[.)])\s/gm),inf=cnt(/\b(?:lol|tbh|gonna|wanna|kinda|sorta|yeah|yep|nope|idk|imo|haha|ugh|omg|btw|ok|okay)\b|!!|\?!|\.\.\./gi);
+ const avgw=W.reduce((x,y)=>x+y.length,0)/Math.max(W.length,1),mid=sl.filter(x=>x>=15&&x<=25).length/Math.max(sl.length,1),last=sents[sents.length-1]||"";
+ const both=cnt(/\bon (?:the )?one hand\b|\bon the other hand\b|\bwhile (?:\w+ ){1,6}also\b|\bboth\b[^.]{1,30}\band\b/gi),you=cnt(/\byou(?:r|rs|'ll|'re|'ve)?\b/gi);
+ const paras=text.split(/\n\s*\n/).map(x=>words(x).length).filter(Boolean),pm=paras.reduce((x,y)=>x+y,0)/Math.max(paras.length,1),pcv=pm?Math.sqrt(paras.reduce((x,y)=>x+(y-pm)**2,0)/paras.length)/pm:1;
+ const end=/\b(?:overall|ultimately|in conclusion|remember|in the end|by following|together,|ready to)\b/i.test(last);
+ const S=[a.M[0].s,a.M[1].s,a.M[2].s,a.M[3].s,a.M[4].s,a.M[5].s,clamp(p(dash)*30),clamp(p(con)*45),long?clamp(100-p(cn)*35):30,clamp(p(tri)*70),long?clamp(100-p(fp)*25):30,
+  sents.length>=4?clamp((top/sents.length-.2)*250):0,clamp(p(trans)*40),clamp(p(vague)*25),clamp(p(intens)*60),clamp(md*35),long?clamp(100-inf*45):30,clamp((avgw-4.4)*70),
+  sl.length>=4?clamp((mid-.3)*180):0,end?100:0,clamp(both*50),paras.length>=3?clamp((.45-pcv)/.45*100):0,clamp((p(you)-3)*20)];
+ const D=[a.M[0].d,a.M[1].d,a.M[2].d,a.M[3].d,a.M[4].d,a.M[5].d,dash+" found",con+" found",cn+" contractions",tri+" found",fp+" first-person words",
+  "most common opener used "+top+"×",trans+" found",vague+" found",intens+" found",md+" formatting leftovers",inf+" informal markers","average word length "+avgw.toFixed(1),Math.round(mid*100)+"% of sentences are 15–25 words",end?"last sentence wraps up neatly":"no tidy wrap-up",both+" found",paras.length<3?"needs 3+ paragraphs":"paragraph variation "+pcv.toFixed(2),you+" uses of “you”"];
+ const sw=COND.reduce((x,c)=>x+c[1],0);
+ return{S:COND.map((c,i)=>({n:c[0],s:S[i],d:D[i]})),ai:Math.round(clamp(S.reduce((x,v,i)=>x+v*COND[i][1],0)/sw*AIK))}}
+function renderAI(t){const r=aiCheck(t);$("res2").classList.add("on");const g=$("garc");g.style.strokeDashoffset=377;requestAnimationFrame(()=>requestAnimationFrame(()=>g.style.strokeDashoffset=377*(1-r.ai/100)));
+ count($("ai"),r.ai,1700);$("aiv").textContent=r.ai<30?"probably human":r.ai<60?"mixed, or edited AI":"probably AI";mk(r.S,$("sig"));reveal($("p2"));$("res2").scrollIntoView({behavior:"smooth",block:"start"})}
+const AIX="In today's fast-paced world, it's important to note that effective communication is not just a skill — it's a superpower. By fostering open dialogue, building trust, and embracing change, teams can unlock their full potential. Moreover, a holistic approach plays a crucial role in navigating the ever-evolving landscape of modern work. In conclusion, leveraging these strategies can elevate your team. I hope this helps!";
+$("clist").innerHTML=COND.map(c=>`<li><b>${c[0]}</b><span>weight ${c[1]}</span><br>${esc(c[2])}</li>`).join("");
+$("go2").onclick=()=>{const t=$("in2").value.trim();if(okText(t,"err2"))renderAI(t)};
+$("ex3").onclick=()=>{$("in2").value=AIX;$("wc2").textContent=words(AIX).length+" words";msg("err2","");renderAI(AIX)};
+/* ---- fixer ---- */
+const FIX=[[/\bleveraging\b/gi,"using"],[/\bleverages\b/gi,"uses"],[/\bleveraged\b/gi,"used"],[/\butili[sz]ing\b/gi,"using"],[/\butili[sz]es\b/gi,"uses"],[/\butili[sz]ed\b/gi,"used"],[/\bfostering\b/gi,"building"],[/\bfosters\b/gi,"builds"],[/\bfostered\b/gi,"built"],[/\bnavigating the\b/gi,"handling the"],[/\bnavigates the\b/gi,"handles the"],[/\bunlocking\b/gi,"reaching"],[/\bunlocks\b/gi,"reaches"],[/\bunlocked\b/gi,"reached"],[/\belevating\b/gi,"improving"],[/\belevates\b/gi,"improves"],[/\belevated\b/gi,"improved"],[/\bempowering\b/gi,"helping"],[/\bempowers\b/gi,"helps"],[/\bdelving (?:in)?to\b/gi,"looking at"],[/\bdelves (?:in)?to\b/gi,"looks at"],[/\bdelving\b/gi,"digging"],[/\bdelves\b/gi,"digs"],[/\bembarking on\b/gi,"starting"],
+[/\bit(?:'|’)?s (?:important|worth) (?:to note|noting) that,? /gi,""],[/\bit is (?:important|worth) (?:to note|noting) that,? /gi,""],[/\b(?:moreover|furthermore|additionally),? /gi,""],[/\b(?:in conclusion|in summary|to summari[sz]e|ultimately|overall|at the end of the day),? /gi,""],
+[/\bdelv(?:e|es|ing) (?:in)?to\b/gi,"look at"],[/\bdelv(?:e|es|ing)\b/gi,"dig"],[/\bdeep dive (?:into )?/gi,"look at "],[/\bdive into\b/gi,"look at"],
+[/\bleverag(?:e|es|ing|ed)\b/gi,"use"],[/\butili[sz](?:e|es|ing|ed)\b/gi,"use"],[/\bunlock\b/gi,"reach"],[/\belevate(?:s|d)?\b/gi,"improve"],
+[/\bseamlessly\b/gi,"smoothly"],[/\bseamless\b/gi,"smooth"],[/\brobust\b/gi,"strong"],[/\b(?:cutting-edge|state-of-the-art|next-generation)\b/gi,"new"],[/\bgame[- ]chang(?:er|ing)\b/gi,"big"],
+[/\b(?:a )?testament to\b/gi,"proof of"],[/\b(?:rich )?tapestry\b/gi,"mix"],[/\b(?:landscape|realm)\b/gi,"field"],[/\bnavigat(?:e|es|ing) the\b/gi,"handle the"],[/\bfoster(?:s|ing|ed)?\b/gi,"build"],
+[/\b(?:pivotal|crucial)\b/gi,"key"],[/\b(?:vibrant|bustling)\b/gi,"busy"],[/\bholistic\b/gi,"whole"],[/\bsynergy\b/gi,"teamwork"],[/\bembark(?:s|ing)? on\b/gi,"start"],[/\bunleash(?:es|ing)?\b/gi,"release"],
+[/\bempower(?:s|ing)?\b/gi,"help"],[/\bstreamline\b/gi,"simplify"],[/\bsupercharge\b/gi,"speed up"],[/\b(?:myriad|plethora) of\b/gi,"many"],[/\beffortlessly\b/gi,"easily"],[/\beffortless\b/gi,"easy"],
+[/\bplays? a (?:crucial|vital|pivotal|key) role in\b/gi,"matters for"],[/\b(?:potentially|arguably|somewhat|generally|typically|perhaps),? /gi,""],[/\bworld-class\b/gi,"good"],[/\bever-(?:evolving|changing)\b/gi,"changing"],[/\bfast-paced\b/gi,"busy"]];
+function fixText(t){let c=0,rm=0;
+ t=(t.match(/[^.!?]+[.!?]*\s*/g)||[t]).filter(x=>{const k=/^\s*(?:i hope this helps|let me know if|feel free to|i(?:'|’)d be happy to|as an ai|great question|certainly[!,.]|absolutely[!,.]|of course[!,.])/i.test(x);if(k)rm++;return!k}).join("");
+ for(const[re,rep]of FIX)t=t.replace(re,m=>{c++;if(!rep)return"";const r=/^[A-Z]/.test(m)?rep[0].toUpperCase()+rep.slice(1):rep;return"\u0001"+r+"\u0002"});
+ t=t.replace(/ {2,}/g," ").replace(/ +([,.!?;])/g,"$1").replace(/(^|[.!?]\s+|\n)(\u0001?)([a-z])/g,(m,a,b,x)=>a+b+x.toUpperCase()).replace(/,\s*,/g,",").trim();return{t,c,rm}}
+let FIXED="";
+function renderFix(t){const fn=$("fnote");fn.classList.remove("pop");void fn.offsetWidth;fn.classList.add("pop");const f=fixText(t);FIXED=f.t.replace(/[\u0001\u0002]/g,"");const b=analyze(t).total,a=words(FIXED).length>2?analyze(FIXED).total:0;
+ $("res3").classList.add("on");count($("b4"),b,1200);count($("a4"),a,1700);$("chg").textContent=f.c+" swaps and cuts, "+f.rm+" filler sentences removed. read it through: it removes padding but can't invent specifics.";
+ $("fixed").innerHTML=esc(f.t).replace(/\u0001/g,'<mark class="g">').replace(/\u0002/g,"</mark>");reveal($("p3"));$("res3").scrollIntoView({behavior:"smooth",block:"start"})}
+$("go3").onclick=()=>{const t=$("in3").value.trim();if(okText(t,"err3"))renderFix(t)};
+$("ex4").onclick=()=>{$("in3").value=AIX;$("wc3").textContent=words(AIX).length+" words";msg("err3","");renderFix(AIX)};
+$("cp").onclick=async()=>{if(!FIXED)return;try{await navigator.clipboard.writeText(FIXED)}catch(e){const x=document.createElement("textarea");x.value=FIXED;document.body.appendChild(x);x.select();try{document.execCommand("copy")}catch(_){}x.remove()}$("cp").textContent="copied";setTimeout(()=>$("cp").textContent="copy result",1400)};
+</script>
+</body>
+</html>
